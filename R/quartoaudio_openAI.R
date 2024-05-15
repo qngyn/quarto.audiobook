@@ -7,7 +7,7 @@
 #'@param speed The speed of generated audio. Defaults to 1. Values are from `0.25` to `4.0`
 #'@export
 
-quartoaudio_openai <- function(api_key, model="tts-1", voice="alloy", input, ...) {
+quartoaudio_openAI <- function(api_key, model="tts-1", voice="alloy", input, ...) {
   library(httr)
   library(magrittr)
 
@@ -29,14 +29,14 @@ quartoaudio_openai <- function(api_key, model="tts-1", voice="alloy", input, ...
     input = input
   )
 
-  headers <- add_headers(
-    "Authorization" = paste("Bearer", api_key),
-    "Content-Type" = "application/json"
+  headers <- c(
+    `Authorization` = paste("Bearer", api_key),
+    `Content-Type` = "application/json"
   )
 
   ENDPOINT <- "https://api.openai.com/v1/audio/speech"
 
-  response <- POST(ENDPOINT, body = body, encode = "json", headers = headers)
+  response <- POST(ENDPOINT, body = body, encode = "json", add_headers(.headers = headers))
 
   if (status_code(response) == 200) {
     # Save the audio response to the output file
