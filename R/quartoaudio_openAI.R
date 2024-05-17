@@ -7,23 +7,28 @@
 #'@param speed The speed of generated audio. Defaults to 1. Values are from `0.25` to `4.0`
 #'@export
 
-quartoaudio_openAI <- function(api_key, model="tts-1", voice="alloy", input, ...) {
+quartoaudio_openAI <- function(input, api_key, model="tts-1", voice="alloy", ...) {
   library(httr)
   library(magrittr)
 
+  #check if the api_key is valid
   if (is.na(api_key) || is.null(api_key) || api_key == "") {
-    stop("Please provide a valid key")
+    stop("Please provide a key")
   }
+
+  #check if the model is valid
   if (model != "tts-1" && model != "tts-1-hd") {
     stop("Invalid model input. Please check the reference again: https://platform.openai.com/docs/api-reference/audio/createSpeech#audio-createspeech-voice")
   }
 
+  #check if the voice for audio is valid
   voiceList <- c("alloy", "echo", "fable", "onyx", "nova", "shimmer")
   if (!(voice %in% voiceList)) {
     stop ("Invalid supported voice. Please check the refernce again: https://platform.openai.com/docs/api-reference/audio/createSpeech#audio-createspeech-voice")
   }
 
-  body <- list(
+  #call from the API
+  payload <- list(
     model = model,
     voice = voice,
     input = input
@@ -36,14 +41,14 @@ quartoaudio_openAI <- function(api_key, model="tts-1", voice="alloy", input, ...
 
   ENDPOINT <- "https://api.openai.com/v1/audio/speech"
 
-  response <- POST(ENDPOINT, body = body, encode = "json", add_headers(.headers = headers))
+  response <- POST(ENDPOINT, body = payload, encode = "json", add_headers(.headers = headers))
 
   if (status_code(response) == 200) {
     # Save the audio response to the output file
-    writeBin(content(response, "raw"), output_file)
-    message("Audio saved successfully to ", output_file)
+    # writeBin(content(response, "raw"), output_file)
+    # message("Audio saved successfully to ", output_file)
   } else {
     # If request failed, print error message
-    stop(paste("Error:", content(response, "text")))
+    # stop(paste("Error:", content(response, "text")))
   }
 }

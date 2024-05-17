@@ -3,11 +3,16 @@
 #'@param api TTS APIs (openAI, voiceRSS,)
 #'@export language language for the audio file
 
-quartoaudio <- function (key, api="openai", language="en",...) {
+source("R/quartoaudio_openAI.R")
+source("R/quartoaudio_voiceRSS.R")
+source("R/quartoaudio_playht.R")
+quartoaudio <- function () {
 
-  ## error checking for
-  if (is.null(key) || is.na(key) || key == "") {
-    stop ("Please enter a valid key!")
+  message("which API do you want to use? (openAI, voiceRSS, play.ht)")
+  api_choice <- tolower(readLines(con=stdin(), n = 1))
+
+  supported_api <- c("openai", "voicerss", "play.ht")
+  if (!(api_choice %in% supported_api)) {
+    message("Not in supported API. Please try again!")
   }
-
 }

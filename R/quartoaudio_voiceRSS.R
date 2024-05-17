@@ -7,8 +7,12 @@
 #' @export
 
 quartoaudio_voiceRSS <- function(input, api_key, language="en-us", voices="Linda", audio_codecs="MP3", audio_format="44khz_16bit_stereo"){
+  library(httr)
+
   ENDPOINT <- "http://api.voicerss.org/"
-  params <- list(key = api_key, src = input, hl = language, c = "MP3", f = audio_format)
+
+  payload <- list(key = api_key, src = input, hl = language, c = "MP3", f = audio_format)
+
   response <- POST(ENDPOINT, body = params)
 
   if (http_error(response)) {
