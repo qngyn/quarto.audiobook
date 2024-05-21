@@ -1,19 +1,28 @@
 #' Convert Quarto file into audio using VoiceRSS API (https://www.voicerss.org/api/)
 #' @param input quarto file
-#' @param language convert textual content into the desired language. Defaults to English (US). More language can be found on VoiceRSS API website
-#' @param voices convert textual content into following voices. Defaults to Linda (English(US)). More voices can be found on VoiceRSS API website
-#' @param audio_codecs convert textual content to audio codecs. Defaults to MP3. More audio codecs can be found on VoiceRSS API website
-#' @param audio_format convert textual to audio formats. Defaults to 44khz_16bit_stereo. More audio format can be found on VoiceRSS API website
+#' @param hl convert textual content into the desired language. Defaults to English (US). More language can be found on VoiceRSS API website
+#' @param v convert textual content into following voices. Defaults to Linda (English(US)). More voices can be found on VoiceRSS API website
+#' @param c convert textual content to audio codecs. Defaults to MP3. More audio codecs can be found on VoiceRSS API website
+#' @param f convert textual to audio formats. Defaults to 44khz_16bit_stereo. More audio format can be found on VoiceRSS API website
 #' @export
 
-quartoaudio_voiceRSS <- function(input, api_key, language="en-us", voices="Linda", audio_codecs="MP3", audio_format="44khz_16bit_stereo"){
+quartoaudio_voiceRSS <- function(input, api_key, hl="en-us", c="MP3", f="44khz_16bit_stereo",...){
   library(httr)
 
   ENDPOINT <- "http://api.voicerss.org/"
 
-  payload <- list(key = api_key, src = input, hl = language, c = "MP3", f = audio_format)
+  payload <- list(
+    key = api_key,
+    src = input,
+    hl = hl,
+    c = c,
+    f = f
+    )
 
-  response <- POST(ENDPOINT, body = params)
+  other_information <- list(...)
+
+  payload <- c(payload, other_information)
+  response <- POST(ENDPOINT, body = payload)
 
   if (http_error(response)) {
     stop("Error:", content(response, "text"))
@@ -24,4 +33,5 @@ quartoaudio_voiceRSS <- function(input, api_key, language="en-us", voices="Linda
     response_content <- (unlist(strsplit(response_content, ":")[1]))[2] #will need to modify this line later
     stop(response_content)
   }
+
 }
