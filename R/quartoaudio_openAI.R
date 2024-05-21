@@ -27,6 +27,13 @@ quartoaudio_openAI <- function(input, api_key, model="tts-1", voice="alloy", ...
     stop ("Invalid supported voice. Please check the refernce again: https://platform.openai.com/docs/api-reference/audio/createSpeech#audio-createspeech-voice")
   }
 
+  ENDPOINT <- "https://api.openai.com/v1/audio/speech"
+
+  headers <- c(
+    `Authorization` = paste("Bearer", api_key),
+    `Content-Type` = "application/json"
+  )
+
   #call from the API
   payload <- list(
     model = model,
@@ -34,21 +41,18 @@ quartoaudio_openAI <- function(input, api_key, model="tts-1", voice="alloy", ...
     input = input
   )
 
-  headers <- c(
-    `Authorization` = paste("Bearer", api_key),
-    `Content-Type` = "application/json"
-  )
+  other_information <- list(...)
 
-  ENDPOINT <- "https://api.openai.com/v1/audio/speech"
+  payload <- c(payload, other_information)
 
   response <- POST(ENDPOINT, body = payload, encode = "json", add_headers(.headers = headers))
 
   if (status_code(response) == 200) {
-    # Save the audio response to the output file
-    # writeBin(content(response, "raw"), output_file)
-    # message("Audio saved successfully to ", output_file)
+    #Save the audio response to the output file
+    writeBin(content(response, "raw"), output_file)
+    message("Audio saved successfully to ", output_file)
   } else {
-    # If request failed, print error message
-    # stop(paste("Error:", content(response, "text")))
+    #If request failed, print error message
+    stop(paste("Error:", content(response, "text")))
   }
 }
