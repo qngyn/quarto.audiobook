@@ -8,9 +8,6 @@
 #'@export
 
 quartoaudio_openAI <- function(input, api_key, model="tts-1", voice="alloy", ...) {
-  library(httr)
-  library(magrittr)
-
   #check if the api_key is valid
   if (is.na(api_key) || is.null(api_key) || api_key == "") {
     stop("Please provide a key")
@@ -29,7 +26,7 @@ quartoaudio_openAI <- function(input, api_key, model="tts-1", voice="alloy", ...
 
   ENDPOINT <- "https://api.openai.com/v1/audio/speech"
 
-  headers <- c(
+  headers <- list(
     `Authorization` = paste("Bearer", api_key),
     `Content-Type` = "application/json"
   )
@@ -45,14 +42,16 @@ quartoaudio_openAI <- function(input, api_key, model="tts-1", voice="alloy", ...
 
   payload <- c(payload, other_information)
 
-  response <- POST(ENDPOINT, body = payload, encode = "json", add_headers(.headers = headers))
+  request <- httr2::request(ENDPOINT) |> httr2::req_headers(!!!headers) |> httr2::req_body_json(payload)
+  response <- request |> httr2::req_perform()
 
-  if (status_code(response) == 200) {
+  if (httr2::resp_status(response) == 200) {
+    output_file <- "testing.mp3" #temporary hold
     #Save the audio response to the output file
-    writeBin(content(response, "raw"), output_file)
+    writeBin(httr2::resp_body_raw(response), output_file)
     message("Audio saved successfully to ", output_file)
   } else {
     #If request failed, print error message
-    stop(paste("Error:", content(response, "text")))
+    stop(paste("Error:", resp_body_string(response)))
   }
 }

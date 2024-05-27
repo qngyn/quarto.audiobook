@@ -7,10 +7,15 @@
 #' @export
 
 quartoaudio_voiceRSS <- function(input, api_key, hl="en-us", c="MP3", f="44khz_16bit_stereo",...){
-  library(httr)
 
+  if (is.na(api_key) || is.null(api_key) || api_key == "") {
+    stop("Please provide a key")
+  }
+
+  #Base URL
   ENDPOINT <- "http://api.voicerss.org/"
 
+  #Request payload
   payload <- list(
     key = api_key,
     src = input,
@@ -22,16 +27,29 @@ quartoaudio_voiceRSS <- function(input, api_key, hl="en-us", c="MP3", f="44khz_1
   other_information <- list(...)
 
   payload <- c(payload, other_information)
-  response <- POST(ENDPOINT, body = payload)
+  # response <- POST(ENDPOINT, body = payload)
 
-  if (http_error(response)) {
-    stop("Error:", content(response, "text"))
+  request <- httr2::request(ENDPOINT) |> httr2::req_body_form(!!!payload)
+  response <- request |> httr2::req_perform()
+
+  if (httr2::resp_is_error(response)) {
+    stop("Error:", httr2::resp_body_string(response))
   }
 
-  response_content <- content(response, "text")
+  response_content <- httr2::resp_body_string(response)
   if (grepl("ERROR:", response_content)) {
     response_content <- (unlist(strsplit(response_content, ":")[1]))[2] #will need to modify this line later
     stop(response_content)
+  }
+
+  if (httr2::resp_status(response) == 200) {
+    output_file <- "voiceRSStesting.mp3" #temporary hold
+    # Save the audio response to the specified output file
+    writeBin(httr2::resp_body_raw(response), output_file)
+    message("Audio saved successfully to ", output_file)
+  } else {
+    # If request failed, print error message
+    stop(paste("Error:", httr2::resp_body_string(response)))
   }
 
 }
