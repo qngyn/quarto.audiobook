@@ -7,7 +7,7 @@
 #'@param speed The speed of generated audio. Defaults to 1. Values are from `0.25` to `4.0`
 #'@export
 
-quartoaudio_openAI <- function(input, api_key, model="tts-1", voice="alloy", ...) {
+quartoaudio_openAI <- function(input, api_key = get_api_key(), model="tts-1", voice="alloy", ...) {
   #check if the api_key is valid
   if (is.na(api_key) || is.null(api_key) || api_key == "") {
     stop("Please provide a key")
@@ -19,8 +19,8 @@ quartoaudio_openAI <- function(input, api_key, model="tts-1", voice="alloy", ...
   }
 
   #check if the voice for audio is valid
-  voiceList <- c("alloy", "echo", "fable", "onyx", "nova", "shimmer")
-  if (!(voice %in% voiceList)) {
+  voice_list <- c("alloy", "echo", "fable", "onyx", "nova", "shimmer")
+  if (!(voice %in% voice_list)) {
     stop ("Invalid supported voice. Please check the refernce again: https://platform.openai.com/docs/api-reference/audio/createSpeech#audio-createspeech-voice")
   }
 
@@ -53,5 +53,13 @@ quartoaudio_openAI <- function(input, api_key, model="tts-1", voice="alloy", ...
   } else {
     #If request failed, print error message
     stop(paste("Error:", resp_body_string(response)))
+  }
+
+  get_api_key <- function() {
+    key <- Sys.getenv("OPENAI_API_KEY")
+    if (identical(key, "")) {
+      stop("No OPENAI_API_KEY is found, please supply with `api_key` arguments or with OPENAI_API_KEY env var")
+    }
+    key
   }
 }
