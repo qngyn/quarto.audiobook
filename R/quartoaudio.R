@@ -11,8 +11,12 @@ quartoaudio <- function (api,...) {
 
   if (api == "openai") {
     #temporary hold
-    if (!"input" %in% names(args) || is.null(args$input) || !"api_key" %in% names(args) || is.null(args$api_key)) {
-      stop("OpenAI API requires 'input' and 'api_key'")
+    if (!"input" %in% names(args) || is.null(args$input)) {
+      stop("OpenAI API requires 'input'")
+    }
+
+    if(!"api_key" %in% names(args) || is.null(args$api_key)) {
+      args$api_key <- get_openai_api_key()
     }
 
     #default values for required params
@@ -23,11 +27,12 @@ quartoaudio <- function (api,...) {
 
   else if (api == "voicerss") {
     #temporary hold
-    if (!"input" %in% names(args)
-        || is.null(args$input)
-        || !"api_key" %in% names(args)
-        || is.null(args$api_key)) {
-      stop("VoiceRSS requires 'input' and 'api_key'")
+    if (!"input" %in% names(args) || is.null(args$input)) {
+      stop("VoiceRSS API requires 'input'")
+    }
+
+    if(!"api_key" %in% names(args) || is.null(args$api_key)) {
+      args$api_key <- get_voicerss_api_key()
     }
 
     #default values for required params
@@ -46,17 +51,17 @@ quartoaudio <- function (api,...) {
 
     if (!"user_id" %in% names(args)
         || is.null(args$user_id)) {
-      stop("VoiceRSS requires 'user_id' ")
+      args$user_id <- get_playht_user_id()
     }
 
     if (!"api_key" %in% names(args)
         || is.null(args$api_key)) {
-      stop("VoiceRSS requires 'api_key' ")
+      args$api_key <- get_playht_api_key()
     }
 
     if (!"voice"%in% names(args)) args$voice <- "s3://voice-cloning-zero-shot/d9ff78ba-d016-47f6-b0ef-dd630f59414e/female-cs/manifest.json"
 
-    quartoaudio_playht(input = args$input, user_id = args$user_id, secret_key = args$api_key, voice = args$voice)
+    quartoaudio_playht(input = args$input, user_id = args$user_id, api_key = args$api_key, voice = args$voice)
   }
 
   else {
