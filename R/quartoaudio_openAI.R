@@ -5,7 +5,7 @@
 #'@param input The text to generate into audio
 #'@param reponse_format The format to audio in. Defaults to mp3. Supported format are `mp3`, `opus`, `aac`, `flac`, `wav`, `pcm`
 #'@param speed The speed of generated audio. Defaults to 1. Values are from `0.25` to `4.0`
-#'@export
+
 
 quartoaudio_openAI <- function(input,
                                api_key = get_openai_api_key(),

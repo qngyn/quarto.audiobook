@@ -4,16 +4,22 @@
 \alias{quartoaudio_openAI}
 \title{convert a quarto file to audio using openAI API}
 \usage{
-quartoaudio_openAI(api_key, model = "tts-1", voice = "alloy", input, ...)
+quartoaudio_openAI(
+  input,
+  api_key = get_openai_api_key(),
+  model = "tts-1",
+  voice = "alloy",
+  ...
+)
 }
 \arguments{
+\item{input}{The text to generate into audio}
+
 \item{api_key}{API key}
 
 \item{model}{Available openAI TTS model: `tts-1`, `tts-1-hd`}
 
 \item{voice}{The voice use when generating the audio. Supported voice are `alloy`, `echo`, `fable`, `onyx`, `nova`, `shimmer`}
-
-\item{input}{The text to generate into audio}
 
 \item{reponse_format}{The format to audio in. Defaults to mp3. Supported format are `mp3`, `opus`, `aac`, `flac`, `wav`, `pcm`}
 
