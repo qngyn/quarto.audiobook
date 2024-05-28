@@ -6,7 +6,12 @@
 #' @param f convert textual to audio formats. Defaults to 44khz_16bit_stereo. More audio format can be found on VoiceRSS API website
 #' @export
 
-quartoaudio_voiceRSS <- function(input, api_key, hl="en-us", c="MP3", f="44khz_16bit_stereo",...){
+quartoaudio_voiceRSS <- function(input,
+                                 api_key = get_voicerss_api_key(),
+                                 hl="en-us",
+                                 c="MP3",
+                                 f="44khz_16bit_stereo",
+                                 ...){
 
   if (is.na(api_key) || is.null(api_key) || api_key == "") {
     stop("Please provide a key")
@@ -51,5 +56,12 @@ quartoaudio_voiceRSS <- function(input, api_key, hl="en-us", c="MP3", f="44khz_1
     # If request failed, print error message
     stop(paste("Error:", httr2::resp_body_string(response)))
   }
+}
 
+get_voicerss_api_key <- function() {
+  key <- Sys.getenv("VOICERSS_API_KEY")
+  if (identical(key, "")) {
+    stop("No VOICERSS_API_KEY is found, please supply with `api_key` arguments or with VOICERSS_API_KEY env var")
+  }
+  key
 }
