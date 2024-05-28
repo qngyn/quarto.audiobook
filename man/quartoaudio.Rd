@@ -4,12 +4,10 @@
 \alias{quartoaudio}
 \title{convert a quarto file to audio}
 \usage{
-quartoaudio(key, api = "openai", language = "en", ...)
+quartoaudio(api, ...)
 }
 \arguments{
-\item{key}{API key}
-
-\item{api}{TTS APIs (openAI, voiceRSS,)}
+\item{api}{TTS APIs (openAI, voiceRSS, play.ht)}
 }
 \description{
 convert a quarto file to audio

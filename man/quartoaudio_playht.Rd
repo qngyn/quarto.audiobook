@@ -2,13 +2,22 @@
 % Please edit documentation in R/quartoaudio_playht.R
 \name{quartoaudio_playht}
 \alias{quartoaudio_playht}
-\title{Convert  a quarto file to audio using openAI API}
+\title{Convert  a quarto file to audio using play.ht API (https://docs.play.ht/reference/api-generate-audio)}
 \usage{
-quartoaudio_playht(input, user_id, secret_key, output_format = "mp3", ...)
+quartoaudio_playht(
+  input,
+  user_id = get_playht_user_id(),
+  api_key = get_playht_api_key(),
+  voice =
+    "s3://voice-cloning-zero-shot/d9ff78ba-d016-47f6-b0ef-dd630f59414e/female-cs/manifest.json",
+  ...
+)
 }
 \arguments{
 \item{input}{The text to generate into audio}
+
+\item{voice}{the unique ID for a playHT or cloned voice}
 }
 \description{
-Convert  a quarto file to audio using openAI API
+Convert  a quarto file to audio using play.ht API (https://docs.play.ht/reference/api-generate-audio)
 }

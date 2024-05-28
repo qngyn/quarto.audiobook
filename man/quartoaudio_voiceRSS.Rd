@@ -6,23 +6,23 @@
 \usage{
 quartoaudio_voiceRSS(
   input,
-  api_key,
-  language = "en-us",
-  voices = "Linda",
-  audio_codecs = "MP3",
-  audio_format = "44khz_16bit_stereo"
+  api_key = get_voicerss_api_key(),
+  hl = "en-us",
+  c = "MP3",
+  f = "44khz_16bit_stereo",
+  ...
 )
 }
 \arguments{
 \item{input}{quarto file}
 
-\item{language}{convert textual content into the desired language. Defaults to English (US). More language can be found on VoiceRSS API website}
+\item{hl}{convert textual content into the desired language. Defaults to English (US). More language can be found on VoiceRSS API website}
 
-\item{voices}{convert textual content into following voices. Defaults to Linda (English(US)). More voices can be found on VoiceRSS API website}
+\item{c}{convert textual content to audio codecs. Defaults to MP3. More audio codecs can be found on VoiceRSS API website}
 
-\item{audio_codecs}{convert textual content to audio codecs. Defaults to MP3. More audio codecs can be found on VoiceRSS API website}
+\item{f}{convert textual to audio formats. Defaults to 44khz_16bit_stereo. More audio format can be found on VoiceRSS API website}
 
-\item{audio_format}{convert textual to audio formats. Defaults to 44khz_16bit_stereo. More audio format can be found on VoiceRSS API website}
+\item{v}{convert textual content into following voices. Defaults to Linda (English(US)). More voices can be found on VoiceRSS API website}
 }
 \description{
 Convert Quarto file into audio using VoiceRSS API (https://www.voicerss.org/api/)
