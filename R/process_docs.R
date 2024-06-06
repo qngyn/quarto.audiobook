@@ -98,9 +98,20 @@ detect_and_process_hyperlink <- function(str) {
 }
 
 #Detect if a string is bold or not.
-#If it is bold, remove all asterick
+#If it is bold, remove all asterisk
 detect_and_process_bold_text <- function(str) {
   pattern <- "\\*\\*(.*?)\\*\\*|\\_\\_(.*?)\\_\\_"
+  if (stringr::str_detect(str, pattern)) {
+    cleaned_text <- stringr::str_replace_all(str, pattern, "\\1\\2")
+    return(cleaned_text)
+  }
+  return (str)
+}
+
+#Detect if a string is italics or not.
+#If it is bold, remove all asterisk
+detect_and_process_italics_text <- function(str) {
+  pattern <- "\\*(.*?)\\*|\\_(.*?)\\_"
   if (stringr::str_detect(str, pattern)) {
     cleaned_text <- stringr::str_replace_all(str, pattern, "\\1\\2")
     return(cleaned_text)
