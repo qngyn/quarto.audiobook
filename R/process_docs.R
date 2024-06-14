@@ -98,7 +98,7 @@ detect_and_process_hyperlink <- function(str) {
 }
 
 #Detect if a string is bold or not.
-#If it is bold, remove all asterisk
+#If it is bold, remove all asterisks
 detect_and_process_bold_text <- function(str) {
   pattern <- "\\*\\*(.*?)\\*\\*|\\_\\_(.*?)\\_\\_"
   if (stringr::str_detect(str, pattern)) {
@@ -108,14 +108,26 @@ detect_and_process_bold_text <- function(str) {
   return (str)
 }
 
-#Detect if a string is italics or not.
-#If it is bold, remove all asterisk
+#Detect if a string is italics or not
+#If it is italics, remove all asterisks
 detect_and_process_italics_text <- function(str) {
-  pattern <- "\\*(.*?)\\*|\\_(.*?)\\_"
+  pattern <- "\\_(.*?)\\_|\\*(.*?)\\*"
   if (stringr::str_detect(str, pattern)) {
     cleaned_text <- stringr::str_replace_all(str, pattern, "\\1\\2")
     return(cleaned_text)
   }
+  return (str)
+}
+
+#Detect if a string has equations or not
+#If it is, remove the equation and notify as equation is detected.
+detect_and_process_equations <- function(str) {
+  pattern <- "\\$\\$(.*?)\\$\\$|\\$(.*?)\\$"
+  if (stringr::str_detect(str, pattern)) {
+    cleaned_text <- stringr::str_replace_all(str, pattern, "equation defined")
+    return (cleaned_text)
+  }
+
   return (str)
 }
 '
