@@ -9,6 +9,13 @@ quartoaudio <- function (api,...) {
   api_choice <- tolower(api)
   args <- list(...)
 
+  #set up audio folder
+  curr_dir <- file.path(".", "audio")
+  if (!(dir.exists(curr_dir))) {
+    dir.create(file.path(".", curr_dir))
+  }
+  setwd(file.path(".", curr_dir))
+
   if (api == "openai") {
     #temporary hold
     if (!"input" %in% names(args) || is.null(args$input)) {
