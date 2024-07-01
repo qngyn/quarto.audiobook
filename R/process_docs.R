@@ -44,6 +44,9 @@ while (idx <= seq_along(rmd)) {
   }
 }
 
+#' processing documents (.html.md) file
+#' @param file_name profile the R markdown file that needs to be converted into audio
+#' @returns the audio file of the R markdown
 process_docs <- function(file_name) {
   rmd <- parsermd::parse_rmd(file_name) |>
     parsermd::rmd_select(!(parsermd::has_type("rmd_chunk"))) |>
@@ -70,31 +73,13 @@ process_docs <- function(file_name) {
   }
 }
 
-# #Detect a list
-# detect_list <- function(str) {
-#   return (grepl("^\\s*-\\s+", str))
-# }
-#
-#
-# #Processing a list
-# list_process <- function(str_list, idx) {
-#   list_chars <- 0
-#   list_info <- ""
-#   while (idx <= seq_along(str_list) && detect_list(sentence[idx])) {
-#     current_line <- trimws(gsub("^\\s*-\\s*", "", current_line))
-#     list_chars <- nchar(current_line) + list_chars + 3
-#     list_info <- paste(list_info, current_line, sep = ". ")
-#     idx <- idx + 1
-#   }
-#
-#   return (list(list_chars, list_info, idx - 1))
-# }
-
 #--------------------------------------------
 #PROCESSING DOCUMENTS
 
 #TEXT DECORATION
-#Headings
+#' cleaning the text decorations in the input string (i.e strikethrough, bold text, italics text)
+#' @param str the input string that needs to clean up
+#' @returns the input string without text decoration with selected indication
 clean_text <- function(str) {
   str <- clean_strikethrough(str)
   str <- clean_subscript(str)
@@ -108,10 +93,17 @@ clean_text <- function(str) {
   return(str)
 }
 
+#Headings
+#' helper function to detect as if a string is a header.
+#' @param the input string
+#' @returns return boolean value as if a string is a header
 detect_heading <- function(str) {
   return (stringr::str_detect(str, "^#+\\s*"))
 }
 
+#' clean text decoration in header
+#' @param str the input string
+#' @returns the heading with indication and without text decoration
 clean_heading <- function(str) {
   pattern <- "^#+\\s*"
   level <- stringr::str_count(str, '#')
@@ -124,6 +116,7 @@ clean_heading <- function(str) {
   }
   return (str)
 }
+
 
 #Strikethrough
 clean_strikethrough <- function(str) {
@@ -216,6 +209,10 @@ clean_image <- function(str) {
 }
 
 #EQUATION
+
+#'clean the equation text in .md file ($$)
+#'@param str the input string
+#'@returns return a string without the equation but denotes the equation is defined within the input string
 clean_equation <- function(str) {
   pattern <- "\\$\\$(.*?)\\$\\$|\\$(.*?)\\$"
   if (stringr::str_detect(str, pattern)) {
@@ -225,6 +222,9 @@ clean_equation <- function(str) {
 }
 
 #PARAGRAPH
+#' splitting a paragraph with multiple sentences separate by period
+#'@param str the input string
+#'@returns return a list of sentences from the input string
 split_paragraph <- function(str) {
   sentences <- unlist(strsplit(str, ".", fixed = TRUE))
   sentences <- sentences[sentences != "" & sentences != " "]
