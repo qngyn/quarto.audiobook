@@ -36,17 +36,8 @@ rmd <- parsermd::parse_rmd() |>
 total_chars <- 0
 MAX_LENGTH <- 4096
 idx < - 1
-while (idx <= seq_along(rmd)) {
-  if (rmd[idx] == "") {
-    idx = idx + 1
-    next
-  } else if (detect_table(rmd[idx])) {
-  }
-}
 
-#' processing documents (.html.md) file
-#' @param file_name profile the R markdown file that needs to be converted into audio
-#' @returns the audio file of the R markdown
+
 process_docs <- function(file_name) {
   rmd <- parsermd::parse_rmd(file_name) |>
     parsermd::rmd_select(!(parsermd::has_type("rmd_chunk"))) |>
@@ -57,53 +48,43 @@ process_docs <- function(file_name) {
   current_script <- ""
   script <- list()
 
-  while (idx <= seq_along(rmd)) {
-    if (detect_heading(rmd[idx])) {
-      heading <- clean_heading(rmd[idx])
-    } else if (detect_table(rmd[idx])) {
-      idx <- process_table(idx) + 1
+  while (idx <= length(rmd)) {
+    if (detect_table(rmd[idx])) {
+      idx <- process_table(rmd, idx)
       next
-    } else if (detect_unordered_list(rmd[idx])) {
-
-    } else if (detect_ordered_list(rmd[idx])) {
-
-    } else {
-
+    } else if (detect_heading(rmd[idx])) {
+      rmd[idx] <- clean_heading(rmd[idx])
     }
   }
+
+
+
 }
+
 
 #--------------------------------------------
 #PROCESSING DOCUMENTS
 
 #TEXT DECORATION
-#' cleaning the text decorations in the input string (i.e strikethrough, bold text, italics text)
-#' @param str the input string that needs to clean up
-#' @returns the input string without text decoration with selected indication
+#Headings
 clean_text <- function(str) {
   str <- clean_strikethrough(str)
   str <- clean_subscript(str)
   str <- clean_superscript(str)
+  str <- clean_hyperlink(str2expression())
   str <- clean_bold_text(str)
   str <- clean_italics_text(str)
   str <- clean_inline_code(str)
-  str <- clean_hyperlink(str)
   str <- clean_image(str)
   str <- clean_equation(str)
+  str <- clean_extra_spaces(str)
   return(str)
 }
 
-#Headings
-#' helper function to detect as if a string is a header.
-#' @param the input string
-#' @returns return boolean value as if a string is a header
 detect_heading <- function(str) {
   return (stringr::str_detect(str, "^#+\\s*"))
 }
 
-#' clean text decoration in header
-#' @param str the input string
-#' @returns the heading with indication and without text decoration
 clean_heading <- function(str) {
   pattern <- "^#+\\s*"
   level <- stringr::str_count(str, '#')
@@ -117,13 +98,13 @@ clean_heading <- function(str) {
   return (str)
 }
 
-
 #Strikethrough
+detect_strikethrough <- function(str) {
+  return (stringr::str_detect(str, "~~(.*?)~~"))
+}
 clean_strikethrough <- function(str) {
   pattern <- "~~(.*?)~~"
-  if (stringr::str_detect(str, pattern)) {
-    str <- stringr::str_replace(str, pattern, "")
-  }
+  str <- stringr::str_replace(str, pattern, "")
   return(str)
 }
 
@@ -168,6 +149,15 @@ clean_italics_text <- function(str) {
   return (str)
 }
 
+#' cleaning extra white space(s) (including leading, trailing, and spaces in between)
+#' @param str input string
+#' @returns return string after removing extra white space(s)
+clean_extra_spaces <- function(str) {
+  str <- trimws(str, "both")
+  str <- gsub("\\s+"," ", str)
+  return(str)
+}
+
 # Code chunks
 #Inline code
 clean_inline_code <- function(str) {
@@ -184,6 +174,9 @@ clean_inline_code <- function(str) {
 }
 
 #LINKS
+detect_hyperlink <- function(str) {
+  return (stringr::str_detect(str, "\\[([^\\]]+)\\]\\(([^\\)]+)\\)"))
+}
 clean_hyperlink <- function(str) {
   pattern <- "\\[([^\\]]+)\\]\\(([^\\)]+)\\)"
   if (stringr::str_detect(str, pattern)) {
@@ -209,10 +202,6 @@ clean_image <- function(str) {
 }
 
 #EQUATION
-
-#'clean the equation text in .md file ($$)
-#'@param str the input string
-#'@returns return a string without the equation but denotes the equation is defined within the input string
 clean_equation <- function(str) {
   pattern <- "\\$\\$(.*?)\\$\\$|\\$(.*?)\\$"
   if (stringr::str_detect(str, pattern)) {
@@ -222,9 +211,6 @@ clean_equation <- function(str) {
 }
 
 #PARAGRAPH
-#' splitting a paragraph with multiple sentences separate by period
-#'@param str the input string
-#'@returns return a list of sentences from the input string
 split_paragraph <- function(str) {
   sentences <- unlist(strsplit(str, ".", fixed = TRUE))
   sentences <- sentences[sentences != "" & sentences != " "]
@@ -253,31 +239,85 @@ detect_unordered_list <- function(str) {
   return (stringr::str_detect(str, "^\\s*-\\s*") && (nchar(str) != stringr::str_count(str, "-")))
 }
 
+# prev_indent <- 0
+# list_str <- "list start"
+# while (detect_unordered_list(rmd[idx]) || rmd[idx] == "") {
+#   if (rmd[idx] != "") {
+#
+#     curr_indent <- nchar(rmd[idx]) - nchar(gsub("^\\s+", "", rmd[idx]))
+#     if (curr_indent > prev_indent) {
+#       level <- round(curr_indent / 4)
+#       sub_level <- paste(rep("sub", level), collapse = " ")
+#       print(sub_level)
+#       list_str <- paste(list_str, sprintf("%s list start", sub_level), sep = ". ")
+#     } else if (curr_indent < prev_indent) {
+#       level <- round(prev_indent / 4)
+#       if (level != 0) {
+#         sub_level <- paste(rep("sub", level), collapse = " ")
+#         list_str <- paste(list_str, sprintf("%s list end", sub_level), sep = ". ")
+#       }
+#     }
+#
+#     rmd[idx] <- clean_text(sub("^\\s*-\\s*", "", rmd[idx]))
+#     list_str <- paste(list_str, rmd[idx], sep = ". ")
+#     prev_indent <- curr_indent
+#   }
+#   idx <- idx + 1
+# }
+#
+# list_str <- paste(list_str, "list end", sep = ". ")
+# return (c(list_str, idx))
+
+#' helper function to calculate the indent level
+#' @param str an element in the list
+#' @returns return the indent level
+indent_level <- function(str) {
+  return (nchar(str) - nchar(gsub("^\\s+", "", str)))
+}
+
+#' helper function to generate sub list/end
+#' @param command indicates if it is start or end
+#' @param level indicates level of the list
+#' return string that with sub repeates to certain level start/end
+indicate_list <- function(command, level) {
+  sub_level <- paste(rep("sub", level), collapse = " ")
+  sprintf("%s list %s", sub_level, command)
+}
+
+
 clean_unorderd_list <- function(rmd, idx) {
-  prev_indent <- 0
-  list_str <- "list start"
+  list_str <- ""
+  stack <- vector()
+
   while (detect_unordered_list(rmd[idx]) || rmd[idx] == "") {
     if (rmd[idx] != "") {
-
-      curr_indent <- nchar(rmd[idx]) - nchar(gsub("^\\s+", "", rmd[idx]))
-      # print(paste("curr_indent", as.character(curr_indent)))
-      # print(paste("prev_indent", as.character(prev_indent)))
-      # print(paste("level", as.character(level)))
-      if (curr_indent < prev_indent) {
+      curr_indent <- indent_level(rmd[idx])
+      if (list_str == "") {
+        list_str <- "list start"
+      } else if (tail(stack, 1) < curr_indent) {
         level <- round(curr_indent / 4)
-        sub_level <- paste(rep("sub", level - 1), collapse = " ")
-        list_str <- paste(list_str, sprintf("%s start", sub_level), sep = ". ")
-      } else if (curr_indent > prev_indent) {
-        level <- round(prev_indent / 4)
-        sub_level <- paste(rep("sub", level - 1), collapse = " ")
-        list_str <- paste(list_str, sprintf("%s end", sub_level), sep = ". ")
+        list_str <- paste(list_str, indicate_list("start", level), sep = ". ")
+      } else if (tail(stack, 1) > curr_indent) {
+        while (length(stack) != 0 && tail(stack, 1) > curr_indent) {
+          level <- round(stack[length(stack)] / 4)
+          list_str <- paste(list_str, indicate_list("end", level), sep = ". ")
+          stack <- stack[-length(stack)]
+        }
+      }
+
+      if (length(stack) == 0 || curr_indent != stack[length(stack)]) {
+        stack <- append(stack, curr_indent)
       }
 
       rmd[idx] <- clean_text(sub("^\\s*-\\s*", "", rmd[idx]))
       list_str <- paste(list_str, rmd[idx], sep = ". ")
-      prev_indent <- curr_indent
     }
     idx <- idx + 1
+  }
+  while (length(stack) > 1) {
+    level <- round(stack[length(stack)] / 4)
+    list_str <- paste(list_str, indicate_list("end", level), sep = ". ")
+    stack <- stack[-length(stack)]
   }
 
   list_str <- paste(list_str, "list end", sep = ". ")
@@ -308,12 +348,12 @@ process_table <- function(rmd, idx) {
   tables <- list()
   tables <- process_table_helper(rmd, tables, idx)
   while (detect_table(rmd[idx + 1])) {
-    if (!(detect_table_separator(rmd[idx + 1]))) {
-      tables <- process_table_helper(rmd, tables, idx + 1)
-    }
+    # if (!(detect_table_separator(rmd[idx + 1]))) {
+    #   tables <- process_table_helper(rmd, tables, idx + 1)
+    # }
     idx = idx + 1
   }
-  return(idx)
+  return(idx + 1)
 }
 
 #PAGE BREAK
@@ -321,6 +361,7 @@ detect_break_line <- function(str) {
   pattern <- "^[-*]+$"
   return (stringr::str_detect(str, pattern) && (stringr::str_count(str, "[-*]")))
 }
+
 '
 1. limiting the characters into 4096 characters only. This also includes spaces, punctations, and special characters.
 2. When it is a list/quote:
@@ -335,7 +376,7 @@ detect_break_line <- function(str) {
 6. screen reader of tables (across cols/rows)
 7. anything shrinks the chars should be happened first
 --------
-1. creating the text to spend into the API
+1. creating the text to feed into the API
 2. splititng it into portions to send into the API
   cleaning the text
 3. API calls
@@ -348,4 +389,7 @@ quarofile-1
 
 #Chapter notation at the beginning of the audio file. "Chapter Title" by _quarto.yml
 #detect if the file has saved
+
+- keep .md files
+-
 '
