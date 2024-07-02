@@ -1,21 +1,22 @@
 process_docs <- function(file_name) {
   rmd <- parsermd::parse_rmd(file_name) |>
-    parsermd::rmd_select(!(parsermd::has_type("rmd_chunk"))) |>
+    parsermd::rmd_select(!(parsermd::has_type("rmd_code_block"))) |>
     parsermd::as_document()
-  total_chars <- 0
-  MAX_LENGTH <- 4096
-  idx <- 1
-  current_script <- ""
+
   script <- list()
+  idx <- 1
 
   while (idx <= length(rmd)) {
-    if (detect_table(rmd[idx])) {
+    if (detect_open_fenced_div(rmd[idx]) || detect_break_line(rmd[idx])) {
+      idx <- idx + 1
+      next
+    } else if (detect_table(rmd[idx])) {
       idx <- process_table(rmd, idx)
       next
     } else if (detect_unordered_list(rmd[idx])) {
-      unordered_list <- clean_unorderd_list(rmd, 35)
+      unordered_list <- clean_unorderd_list(rmd, idx)
       script <- append(script, unordered_list[1])
-      idx <- unordered_list[2]
+      idx <- as.numeric(unordered_list[2])
       next
     }
 
@@ -55,6 +56,10 @@ clean_text <- function(str) {
   return(str)
 }
 
+detect_open_fenced_div <- function(str) {
+  pattern <- "^:::(\\s*\\{[^}]*\\})?$"
+  return (stringr::str_detect(str, pattern))
+}
 detect_heading <- function(str) {
   return (stringr::str_detect(str, "^#+\\s*"))
 }
@@ -307,6 +312,7 @@ detect_break_line <- function(str) {
   pattern <- "^[-*]+$"
   return (stringr::str_detect(str, pattern) && (stringr::str_count(str, "[-*]")))
 }
+
 
 '
 1. limiting the characters into 4096 characters only. This also includes spaces, punctations, and special characters.
