@@ -1,43 +1,3 @@
-# currentScript <- ""
-# totalLength <- 0
-# MAX_LENGTH <- 4096
-# for (idx in seq_along(testing)) {
-#   #PROCESSING DOCUMENTS
-#   currentLine <- testing[idx]
-#   if (startsWith(currentLine, '#')) {
-#     #trimming '#' from the header
-#     currentLine <- gsub("^#+", "", currentLine)
-#   }
-#   #trimming leading space
-#   currentLine <- gsub("^\\s+", "", currentLine)
-#   testing[idx] <- currentLine
-#
-#
-#   #API CALL
-#   numChar <- nchar(currentLine)
-#   if (totalLength + numChar <= 4096) {
-#     totalLength <- totalLength + numChar
-#     currentScript <- paste(currentScript, currentLine, sep = "\n")
-#     print(currentScript)
-#   } else {
-#     ##calling API call
-#     totalLength <- numChar
-#   }
-#
-#   print(testing[idx])
-# }
-# ------------------------------
-#pass a quarto file here
-#select everything exepct for code chunk
-rmd <- parsermd::parse_rmd() |>
-  parsermd::rmd_select(!(parsermd::has_type("rmd_chunk"))) |>
-  parsermd::as_document()
-
-total_chars <- 0
-MAX_LENGTH <- 4096
-idx < - 1
-
-
 process_docs <- function(file_name) {
   rmd <- parsermd::parse_rmd(file_name) |>
     parsermd::rmd_select(!(parsermd::has_type("rmd_chunk"))) |>
@@ -52,12 +12,25 @@ process_docs <- function(file_name) {
     if (detect_table(rmd[idx])) {
       idx <- process_table(rmd, idx)
       next
-    } else if (detect_heading(rmd[idx])) {
-      rmd[idx] <- clean_heading(rmd[idx])
+    } else if (detect_unordered_list(rmd[idx])) {
+      unordered_list <- clean_unorderd_list(rmd, 35)
+      script <- append(script, unordered_list[1])
+      idx <- unordered_list[2]
+      next
     }
+
+    if (rmd[idx] != "") {
+      rmd[idx] <- clean_text(rmd[idx])
+      if (detect_heading(rmd[idx])) {
+        rmd[idx] <- clean_heading(rmd[idx])
+      }
+      script <- append(script, split_paragraph(rmd[idx]))
+    }
+
+    idx <- idx + 1
   }
 
-
+  return (unlist(script))
 
 }
 
@@ -71,13 +44,14 @@ clean_text <- function(str) {
   str <- clean_strikethrough(str)
   str <- clean_subscript(str)
   str <- clean_superscript(str)
-  str <- clean_hyperlink(str2expression())
+  str <- clean_hyperlink(str)
   str <- clean_bold_text(str)
   str <- clean_italics_text(str)
   str <- clean_inline_code(str)
   str <- clean_image(str)
   str <- clean_equation(str)
   str <- clean_extra_spaces(str)
+  str <- clean_task_list(str)
   return(str)
 }
 
@@ -194,7 +168,7 @@ clean_image <- function(str) {
       if (caption == "") {
         return("An image goes here")
       } else {
-        return(paste("An image with ", caption, sep = " ")) #fix this
+        return(paste("An image with a caption as", caption, sep = " ")) #fix this
       }
     })
   }
@@ -205,12 +179,13 @@ clean_image <- function(str) {
 clean_equation <- function(str) {
   pattern <- "\\$\\$(.*?)\\$\\$|\\$(.*?)\\$"
   if (stringr::str_detect(str, pattern)) {
-    str <- stringr::str_replace_all(str, pattern, "equation define") #fix this
+    str <- stringr::str_replace_all(str, pattern, "an equation goes here") #fix this
   }
   return (str)
 }
 
 #PARAGRAPH
+
 split_paragraph <- function(str) {
   sentences <- unlist(strsplit(str, ".", fixed = TRUE))
   sentences <- sentences[sentences != "" & sentences != " "]
@@ -219,7 +194,7 @@ split_paragraph <- function(str) {
 
 #LIST
 #CHECKED/UNCHECKED ITEM
-clean_task_list <- function(text) {
+clean_task_list <- function(str) {
   unchecked_item <- "^\\[ \\] (.+)"
   checked_item <- "^\\[x\\] (.+)"
 
@@ -235,38 +210,10 @@ clean_task_list <- function(text) {
 }
 
 #LIST
+
 detect_unordered_list <- function(str) {
   return (stringr::str_detect(str, "^\\s*-\\s*") && (nchar(str) != stringr::str_count(str, "-")))
 }
-
-# prev_indent <- 0
-# list_str <- "list start"
-# while (detect_unordered_list(rmd[idx]) || rmd[idx] == "") {
-#   if (rmd[idx] != "") {
-#
-#     curr_indent <- nchar(rmd[idx]) - nchar(gsub("^\\s+", "", rmd[idx]))
-#     if (curr_indent > prev_indent) {
-#       level <- round(curr_indent / 4)
-#       sub_level <- paste(rep("sub", level), collapse = " ")
-#       print(sub_level)
-#       list_str <- paste(list_str, sprintf("%s list start", sub_level), sep = ". ")
-#     } else if (curr_indent < prev_indent) {
-#       level <- round(prev_indent / 4)
-#       if (level != 0) {
-#         sub_level <- paste(rep("sub", level), collapse = " ")
-#         list_str <- paste(list_str, sprintf("%s list end", sub_level), sep = ". ")
-#       }
-#     }
-#
-#     rmd[idx] <- clean_text(sub("^\\s*-\\s*", "", rmd[idx]))
-#     list_str <- paste(list_str, rmd[idx], sep = ". ")
-#     prev_indent <- curr_indent
-#   }
-#   idx <- idx + 1
-# }
-#
-# list_str <- paste(list_str, "list end", sep = ". ")
-# return (c(list_str, idx))
 
 #' helper function to calculate the indent level
 #' @param str an element in the list
@@ -283,7 +230,6 @@ indicate_list <- function(command, level) {
   sub_level <- paste(rep("sub", level), collapse = " ")
   sprintf("%s list %s", sub_level, command)
 }
-
 
 clean_unorderd_list <- function(rmd, idx) {
   list_str <- ""
