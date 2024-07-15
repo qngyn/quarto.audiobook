@@ -16,11 +16,21 @@ quartoaudio <- function (api,...) {
   }
   setwd(file.path(".", curr_dir))
 
+  if (!"input" %in% names(args) || is.null(args$input)) {
+    files <- list.files(path = ".", pattern = "\\.html\\.md$", full.names = TRUE)
+    if (length(files) == 0) {
+      stop("No .html.md files found in the current directory")
+    } else {
+      args$input <- files
+    }
+  }
+
+
   if (api == "openai") {
     #temporary hold
-    if (!"input" %in% names(args) || is.null(args$input)) {
-      stop("OpenAI API requires 'input'")
-    }
+    # if (!"input" %in% names(args) || is.null(args$input)) {
+    #   stop("OpenAI API requires 'input'")
+    # }
 
     if(!"api_key" %in% names(args) || is.null(args$api_key)) {
       args$api_key <- get_openai_api_key()
@@ -34,9 +44,9 @@ quartoaudio <- function (api,...) {
 
   else if (api == "voicerss") {
     #temporary hold
-    if (!"input" %in% names(args) || is.null(args$input)) {
-      stop("VoiceRSS API requires 'input'")
-    }
+    # if (!"input" %in% names(args) || is.null(args$input)) {
+    #   stop("VoiceRSS API requires 'input'")
+    # }
 
     if(!"api_key" %in% names(args) || is.null(args$api_key)) {
       args$api_key <- get_voicerss_api_key()
@@ -51,10 +61,10 @@ quartoaudio <- function (api,...) {
 
   else if (api=="play.ht") {
     #temporary hold
-    if (!"input" %in% names(args)
-        || is.null(args$input)) {
-      stop("VoiceRSS requires 'input' ")
-    }
+    # if (!"input" %in% names(args)
+    #     || is.null(args$input)) {
+    #   stop("play.ht requires 'input' ")
+    # }
 
     if (!"user_id" %in% names(args)
         || is.null(args$user_id)) {

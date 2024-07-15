@@ -32,8 +32,9 @@ process_docs <- function(file_name) {
   }
 
   return (unlist(script))
-
 }
+
+
 
 
 #--------------------------------------------
@@ -236,6 +237,10 @@ indicate_list <- function(command, level) {
   sprintf("%s list %s", sub_level, command)
 }
 
+#' cleaning unordered list
+#' @param rmd the parse markdown info
+#' @param idx the start index where first detects a list
+#' @returns a flatten list which indicates where a list, and a sub list start/end (w/ text message to indicate if a sublist of level three is happened) and the last index where the list end
 clean_unorderd_list <- function(rmd, idx) {
   list_str <- ""
   stack <- vector()
@@ -247,13 +252,24 @@ clean_unorderd_list <- function(rmd, idx) {
         list_str <- "list start"
       } else if (tail(stack, 1) < curr_indent) {
         level <- round(curr_indent / 4)
-        list_str <- paste(list_str, indicate_list("start", level), sep = ". ")
+        if (length(stack) == 1) {
+          list_str <- paste(list_str, indicate_list("start", level), sep = ". ")
+        } else {
+          message("a list of level three of more is indicated")
+        }
+
       } else if (tail(stack, 1) > curr_indent) {
-        while (length(stack) != 0 && tail(stack, 1) > curr_indent) {
-          level <- round(stack[length(stack)] / 4)
-          list_str <- paste(list_str, indicate_list("end", level), sep = ". ")
+        # while (length(stack) != 0 && tail(stack, 1) > curr_indent) {
+        #   level <- round(stack[length(stack)] / 4)
+        #   list_str <- paste(list_str, indicate_list("end", level), sep = ". ")
+        #   stack <- stack[-length(stack)]
+        # }
+        while (length(stack) > 2 && stail(stack, 1) > curr_indent) {
           stack <- stack[-length(stack)]
         }
+        level <- round(stack[length(stack)] / 4)
+        list_str <- paste(list_str, indicate_list("end", level), sep = ". ")
+        stack <- stack[-length(stack)]
       }
 
       if (length(stack) == 0 || curr_indent != stack[length(stack)]) {
