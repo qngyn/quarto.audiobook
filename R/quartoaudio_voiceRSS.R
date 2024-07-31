@@ -1,11 +1,11 @@
 #' Convert Quarto file into audio using VoiceRSS API (https://www.voicerss.org/api/)
-#' @param input quarto file
+#' @param input_files list of quarto file
 #' @param hl convert textual content into the desired language. Defaults to English (US). More language can be found on VoiceRSS API website
 #' @param v convert textual content into following voices. Defaults to Linda (English(US)). More voices can be found on VoiceRSS API website
 #' @param c convert textual content to audio codecs. Defaults to MP3. More audio codecs can be found on VoiceRSS API website
 #' @param f convert textual to audio formats. Defaults to 44khz_16bit_stereo. More audio format can be found on VoiceRSS API website
 
-quartoaudio_voiceRSS <- function(input,
+quartoaudio_voiceRSS <- function(input_files,
                                  api_key = get_voicerss_api_key(),
                                  hl="en-us",
                                  c="MP3",
@@ -16,44 +16,57 @@ quartoaudio_voiceRSS <- function(input,
     stop("Please provide a key")
   }
 
+  if (!is.list(input_files)) {
+    input_files <- list(input_files)
+  }
+
   #Base URL
   ENDPOINT <- "http://api.voicerss.org/"
 
-  #Request payload
-  payload <- list(
-    key = api_key,
-    src = input,
-    hl = hl,
-    c = c,
-    f = f
-    )
+  additional_params <- list(...)
 
-  other_information <- list(...)
+  for (file in input_files) {
+    text_chunks <- process_docs(file_name = file)
+    file_name <- tools::file_path_sans_ext(tools::file_path_sans_ext(basename(file)))
+    output_dir <- file.path("audio", file_name)
+    if (!dir.exists(output_dir)) {
+      dir.create(output_dir, recursive = TRUE)
+    }
 
-  payload <- c(payload, other_information)
-  # response <- POST(ENDPOINT, body = payload)
+    for (i in seq_along(text_chunks)) {
+      payload <- c(
+        list(
+          key = api_key,
+          src = text_chunks[[i]],
+          hl = hl,
+          c = c,
+          f = f
+        ),
+        additional_params
+      )
 
-  request <- httr2::request(ENDPOINT) |> httr2::req_body_form(!!!payload)
-  response <- request |> httr2::req_perform()
+      request <- httr2::request(ENDPOINT) |> httr2::req_body_form(!!!payload)
+      response <- request |> httr2::req_perform()
 
-  if (httr2::resp_is_error(response)) {
-    stop("Error:", httr2::resp_body_string(response))
-  }
+      if (httr2::resp_is_error(response)) {
+        stop("Error:", httr2::resp_body_string(response))
+      }
 
-  response_content <- httr2::resp_body_string(response)
-  if (grepl("ERROR:", response_content)) {
-    response_content <- (unlist(strsplit(response_content, ":")[1]))[2] #will need to modify this line later
-    stop(response_content)
-  }
+      response_content <- httr2::resp_body_string(response)
+      if (grepl("ERROR:", response_content)) {
+        response_content <- (unlist(strsplit(response_content, ":")[1]))[2]
+        stop(response_content)
+      }
 
-  if (httr2::resp_status(response) == 200) {
-    output_file <- "voiceRSStesting.mp3" #temporary hold
-    # Save the audio response to the specified output file
-    writeBin(httr2::resp_body_raw(response), output_file)
-    message("Audio saved successfully to ", output_file)
-  } else {
-    # If request failed, print error message
-    stop(paste("Error:", httr2::resp_body_string(response)))
+      if (httr2::resp_status(response) == 200) {
+        output_file <- file.path(output_dir, paste0("chunk_", i, ".mp3"))
+        writeBin(httr2::resp_body_raw(response), output_file)
+        message("Audio saved successfully to ", output_file)
+      } else {
+        stop(paste("Error:", httr2::resp_body_string(response)))
+      }
+
+    }
   }
 }
 

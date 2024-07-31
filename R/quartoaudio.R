@@ -36,8 +36,8 @@ quartoaudio <- function (api,...) {
     if (!"hl"%in% names(args)) args$hl <- "en-us"
     if (!"c"%in% names(args)) args$c <- "MP3"
     if (!"f"%in% names(args)) args$f <- "44khz_16bit_stereo"
-    quartoaudio_voiceRSS(input = args$file_names, api_key = args$api_key, hl=args$hl, c=args$c, f=args$f)
-  } else if (api=="play.ht") {
+    quartoaudio_voiceRSS(input_files = args$file_names, api_key = args$api_key, hl=args$hl, c=args$c, f=args$f)
+  } else if (api == "play.ht") {
     #temporary hold
     # if (!"input" %in% names(args)
     #     || is.null(args$input)) {
@@ -56,7 +56,7 @@ quartoaudio <- function (api,...) {
 
     if (!"voice"%in% names(args)) args$voice <- "s3://voice-cloning-zero-shot/d9ff78ba-d016-47f6-b0ef-dd630f59414e/female-cs/manifest.json"
 
-    quartoaudio_playht(input = args$input, user_id = args$user_id, api_key = args$api_key, voice = args$voice)
+    quartoaudio_playht(input_files = args$input, user_id = args$user_id, api_key = args$api_key, voice = args$voice)
   } else {
     stop("API is not supported")
   }
