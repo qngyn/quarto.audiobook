@@ -12,11 +12,10 @@ quartoaudio <- function (api,...) {
   args <- list(...)
 
   #set up audio folder
-  curr_dir <- file.path(".", "audio")
-  if (!(dir.exists(curr_dir))) {
-    dir.create(file.path(".", curr_dir))
+  audio_dir <- file.path(".", "audio")
+  if (!(dir.exists(audio_dir))) {
+    dir.create(audio_dir)
   }
-  setwd(file.path(".", curr_dir))
 
   if (!"input" %in% names(args) || is.null(args$input)) {
     files <- list.files(path = ".", pattern = "\\.html\\.md$", full.names = TRUE)
