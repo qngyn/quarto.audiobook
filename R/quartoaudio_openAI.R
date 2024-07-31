@@ -44,7 +44,7 @@ quartoaudio_openAI <- function(input_files,
   # Process each file
   for (file in input_files) {
     text_chunks <- process_docs(file_name = file)
-    file_name <- tools::file_path_sans_ext(basename(file))
+    file_name <- tools::file_path_sans_ext(tools::file_path_sans_ext(basename(file)))
     output_dir <- file.path("audio", file_name)
     if (!dir.exists(output_dir)) {
       dir.create(output_dir, recursive = TRUE)
