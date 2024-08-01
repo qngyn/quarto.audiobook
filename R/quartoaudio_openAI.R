@@ -12,21 +12,34 @@ quartoaudio_openAI <- function(input_files,
                                api_key = get_openai_api_key(),
                                model = "tts-1",
                                voice = "alloy",
+                               response_format = "mp3",
+                               speed = 1,
                                ...) {
   # Check if the api_key is valid
   if (is.na(api_key) || is.null(api_key) || api_key == "") {
-    stop("Please provide a key")
+    stop("Please provide a valid API key.")
   }
 
   # Check if the model is valid
   if (model != "tts-1" && model != "tts-1-hd") {
-    stop("Invalid model input. Please check the reference again: https://platform.openai.com/docs/api-reference/audio/createSpeech#audio-createspeech-voice")
+    stop("Invalid model input.")
   }
 
   # Check if the voice is valid
   voice_list <- c("alloy", "echo", "fable", "onyx", "nova", "shimmer")
   if (!(voice %in% voice_list)) {
-    stop("Invalid supported voice. Please check the reference again: https://platform.openai.com/docs/api-reference/audio/createSpeech#audio-createspeech-voice")
+    stop("Invalid voice.")
+  }
+
+  # Ensure response_format is valid
+  format_list <- c("mp3", "opus", "aac", "flac", "wav", "pcm")
+  if (!(response_format %in% format_list)) {
+    stop("Invalid audio format.")
+  }
+
+  # Ensure speed is valid
+  if (speed < 0.25 || speed > 4.0) {
+    stop("Invalid speed value.")
   }
 
   ENDPOINT <- "https://api.openai.com/v1/audio/speech"
@@ -36,16 +49,18 @@ quartoaudio_openAI <- function(input_files,
   )
 
   # Ensure input_files is a list
-  if (!is.list(input_files)) {
-    input_files <- list(input_files)
+  if (is.list(input_files)) {
+    input_files <- unlist(input_files)
   }
 
   additional_params <- list(...)
+
   # Process each file
   for (file in input_files) {
     text_chunks <- process_docs(file_name = file)
     file_name <- tools::file_path_sans_ext(tools::file_path_sans_ext(basename(file)))
     output_dir <- file.path("audio", file_name)
+
     if (!dir.exists(output_dir)) {
       dir.create(output_dir, recursive = TRUE)
     }
