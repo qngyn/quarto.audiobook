@@ -4,6 +4,7 @@
 #' @param v convert textual content into following voices. Defaults to Linda (English(US)). More voices can be found on VoiceRSS API website
 #' @param c convert textual content to audio codecs. Defaults to MP3. More audio codecs can be found on VoiceRSS API website
 #' @param f convert textual to audio formats. Defaults to 44khz_16bit_stereo. More audio format can be found on VoiceRSS API website
+#' @export
 
 quartoaudio_voiceRSS <- function(input_files,
                                  api_key = get_voicerss_api_key(),
@@ -16,8 +17,8 @@ quartoaudio_voiceRSS <- function(input_files,
     stop("Please provide a key")
   }
 
-  if (!is.list(input_files)) {
-    input_files <- list(input_files)
+  if (is.list(input_files)) {
+    input_files <- unlist(input_files)
   }
 
   #Base URL

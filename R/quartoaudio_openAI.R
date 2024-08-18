@@ -7,7 +7,6 @@
 #'@param speed The speed of generated audio. Defaults to 1. Values are from `0.25` to `4.0`
 #'@export
 
-
 quartoaudio_openAI <- function(input_files,
                                api_key = get_openai_api_key(),
                                model = "tts-1",
