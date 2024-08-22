@@ -34,7 +34,10 @@ quartoaudio_voiceRSS <- function(input_files,
       dir.create(output_dir, recursive = TRUE)
     }
 
+    start_chunk <- if (basename(file) == "index.html.md") 2 else 1
+
     for (i in seq_along(text_chunks)) {
+      chunk_num <- start_chunk + (i - 1)
       payload <- c(
         list(
           key = api_key,
@@ -60,7 +63,7 @@ quartoaudio_voiceRSS <- function(input_files,
       }
 
       if (httr2::resp_status(response) == 200) {
-        output_file <- file.path(output_dir, paste0("chunk_", i, ".mp3"))
+        output_file <- file.path(output_dir, paste0("chunk_", chunk_num, ".mp3"))
         writeBin(httr2::resp_body_raw(response), output_file)
         message("Audio saved successfully to ", output_file)
       } else {

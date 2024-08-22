@@ -64,8 +64,11 @@ quartoaudio_openAI <- function(input_files,
       dir.create(output_dir, recursive = TRUE)
     }
 
+    start_chunk <- if (basename(file) == "index.html.md") 2 else 1
+
     # Process each chunk
     for (i in seq_along(text_chunks)) {
+      chunk_num <- start_chunk + (i - 1)
       payload <- list(
         model = model,
         voice = voice,
@@ -81,7 +84,7 @@ quartoaudio_openAI <- function(input_files,
       response <- request |> httr2::req_perform()
 
       if (httr2::resp_status(response) == 200) {
-        output_file <- file.path(output_dir, paste0("chunk_", i, ".mp3"))
+        output_file <- file.path(output_dir, paste0("chunk_", chunk_num, ".mp3"))
         writeBin(httr2::resp_body_raw(response), output_file)
         message("Audio saved successfully to ", output_file)
       } else {
