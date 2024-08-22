@@ -1,0 +1,36 @@
+project:
+  type: book
+  post-render: 
+    - bash -c "cp -a audio _book && mv _book/audio/index/* _book/audio/ && rmdir _book/audio/index"
+    - node post_render.js
+  preview:
+    port: 4200
+    browser: true
+  
+book:
+  title: "example_book"
+  author: "Norah Jones"
+  date: "8/1/2024"
+  chapters:
+    - index.qmd
+    - intro.qmd
+    - summary.qmd
+    - references.qmd
+    
+filters:
+  - lua-env
+
+bibliography: references.bib
+
+
+format:
+  html:
+    theme: cosmo
+    keep-md: true
+    filters: 
+      - lua_filter.lua
+  pdf:
+    documentclass: scrreprt
+
+editor: visual
+

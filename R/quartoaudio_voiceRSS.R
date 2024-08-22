@@ -8,10 +8,10 @@
 
 quartoaudio_voiceRSS <- function(input_files,
                                  api_key = get_voicerss_api_key(),
-                                 hl="en-us",
-                                 c="MP3",
-                                 f="44khz_16bit_stereo",
-                                 ...){
+                                 hl = "en-us",
+                                 c = "MP3",
+                                 f = "44khz_16bit_stereo",
+                                 ...) {
 
   if (is.na(api_key) || is.null(api_key) || api_key == "") {
     stop("Please provide a key")
@@ -21,20 +21,34 @@ quartoaudio_voiceRSS <- function(input_files,
     input_files <- unlist(input_files)
   }
 
-  #Base URL
+  # Base URL
   ENDPOINT <- "http://api.voicerss.org/"
 
   additional_params <- list(...)
 
   for (file in input_files) {
-    text_chunks <- process_docs(file_name = file)
-    file_name <- tools::file_path_sans_ext(tools::file_path_sans_ext(basename(file)))
-    output_dir <- file.path("audio", file_name)
-    if (!dir.exists(output_dir)) {
-      dir.create(output_dir, recursive = TRUE)
-    }
+    if (basename(file) == "_quarto.yml") {
+      text_chunks <- process_yaml_file("_quarto.yml")
+      file_name <- "index"
+      output_dir <- file.path("audio", file_name)
 
-    start_chunk <- if (basename(file) == "index.html.md") 2 else 1
+      if (!dir.exists(output_dir)) {
+        dir.create(output_dir, recursive = TRUE)
+      }
+
+      start_chunk <- 1
+
+    } else {
+      text_chunks <- process_docs(file_name = file)
+      file_name <- tools::file_path_sans_ext(tools::file_path_sans_ext(basename(file)))
+      output_dir <- file.path("audio", file_name)
+
+      if (!dir.exists(output_dir)) {
+        dir.create(output_dir, recursive = TRUE)
+      }
+
+      start_chunk <- if (basename(file) == "index.html.md") 2 else 1
+    }
 
     for (i in seq_along(text_chunks)) {
       chunk_num <- start_chunk + (i - 1)
@@ -69,11 +83,11 @@ quartoaudio_voiceRSS <- function(input_files,
       } else {
         stop(paste("Error:", httr2::resp_body_string(response)))
       }
-
     }
   }
 }
 
+# Helper function to get the VoiceRSS API key
 get_voicerss_api_key <- function() {
   key <- Sys.getenv("VOICERSS_API_KEY")
   if (identical(key, "")) {

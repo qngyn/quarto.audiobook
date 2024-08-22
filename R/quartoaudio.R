@@ -13,12 +13,17 @@ quartoaudio <- function (api,...) {
 
   if (!"file_names" %in% names(args) || is.null(args$file_names)) {
     file_names <- list.files(path = ".", pattern = "\\.html\\.md$", full.names = TRUE)
+
+    if (file.exists("_quarto.yml")) {
+      file_names <- c(file_names, "_quarto.yml")
+    }
     if (length(file_names) == 0) {
       stop("No .html.md files found in the current directory")
     } else {
       args$file_names <- file_names
     }
   }
+
 
   if (api == "openai") {
     if(!"api_key" %in% names(args) || is.null(args$api_key)) {

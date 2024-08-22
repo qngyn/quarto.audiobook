@@ -56,15 +56,28 @@ quartoaudio_openAI <- function(input_files,
 
   # Process each file
   for (file in input_files) {
-    text_chunks <- process_docs(file_name = file)
-    file_name <- tools::file_path_sans_ext(tools::file_path_sans_ext(basename(file)))
-    output_dir <- file.path("audio", file_name)
+    if (basename(file) == "_quarto.yml") {
+      text_chunks <- process_yaml_file("_quarto.yml")
+      file_name <- "index"
+      output_dir <- file.path("audio", file_name)
 
-    if (!dir.exists(output_dir)) {
-      dir.create(output_dir, recursive = TRUE)
+      if (!dir.exists(output_dir)) {
+        dir.create(output_dir, recursive = TRUE)
+      }
+
+      start_chunk <- 1
+
+    } else {
+      text_chunks <- process_docs(file_name = file)
+      file_name <- tools::file_path_sans_ext(tools::file_path_sans_ext(basename(file)))
+      output_dir <- file.path("audio", file_name)
+
+      if (!dir.exists(output_dir)) {
+        dir.create(output_dir, recursive = TRUE)
+      }
+
+      start_chunk <- if (basename(file) == "index.html.md") 2 else 1
     }
-
-    start_chunk <- if (basename(file) == "index.html.md") 2 else 1
 
     # Process each chunk
     for (i in seq_along(text_chunks)) {
@@ -75,10 +88,6 @@ quartoaudio_openAI <- function(input_files,
         input = text_chunks[[i]]
       )
       payload <- c(payload, additional_params)
-
-
-      # other_information <- list(...)
-      # payload <- c(payload, other_information)
 
       request <- httr2::request(ENDPOINT) |> httr2::req_headers(!!!headers) |> httr2::req_body_json(payload)
       response <- request |> httr2::req_perform()
@@ -102,3 +111,5 @@ get_openai_api_key <- function() {
   }
   key
 }
+
+
