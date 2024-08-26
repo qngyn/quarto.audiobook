@@ -41,7 +41,7 @@ npm -v
 ```markdown
 npm init -y
 ```
-
+- Then, you need to copy the `post_render.js` file from the package and paste it into the current directory. This file is used to attach the audio files into the quarto file. You can file the file [here]()
 - And finally, in the `_quarto.yaml` file, make sure to put these commands under the project:
 ```markdown
 post-render: 
